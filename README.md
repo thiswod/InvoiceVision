@@ -21,13 +21,13 @@
 ### 安装方式
 
 1. **下载发布版本**
-   - 从 [Releases](https://github.com/your-repo/InvoiceVision/releases) 下载最新版本的 `InvoiceVision.exe`
+   - 从 [Releases](https://github.com/thiswod/InvoiceVision/releases) 下载最新版本的 `InvoiceVision.exe`
    - 直接运行即可，无需安装
 
 2. **从源码编译**
    ```bash
    # 克隆仓库
-   git clone https://github.com/your-repo/InvoiceVision.git
+   git clone https://github.com/thiswod/InvoiceVision.git
    cd InvoiceVision
    
    # 使用 Visual Studio 或 .NET CLI 编译
@@ -179,7 +179,7 @@ A: 识别速度受网络状况和API响应时间影响。程序已优化请求�
 
 ## 👤 作者
 
-InvoiceVision 开发团队
+**Wod** - [@thiswod](https://github.com/thiswod)
 
 ---
 
