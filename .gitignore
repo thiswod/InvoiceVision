@@ -59,6 +59,7 @@ artifacts/
 
 # Sensitive configuration files
 appsettings.json
+PDF
 
 # Keep example file
 !appsettings.example.json
