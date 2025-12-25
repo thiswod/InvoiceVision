@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="7.5.2" />
-    <PackageReference Include="System.Text.Json" Version="10.0.1" />
+    <PackageReference Include="WodToolKit" Version="1.0.1.9" />
   </ItemGroup>
 
   <ItemGroup>

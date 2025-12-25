@@ -207,145 +207,101 @@ namespace InvoiceVision
 
         private string ExtractInvoiceNum(string text)
         {
-            // 匹配：发票号码: 25447000001498458680
-            var match = Regex.Match(text, @"发票号码[：:]\s*(\d{10,})");
+            // 格式：发票号码: 25447000001498458680
+            var match = Regex.Match(text, @"发票号码[：:]\s*(\d{12,})");
             if (match.Success)
                 return match.Groups[1].Value;
-            
-            return ExtractField(text, new[] { "发票号码", "发票号" });
+            return "";
         }
 
         private string ExtractInvoiceCode(string text)
         {
-            // 发票代码通常在发票号码行的下一行，格式类似：914419000585344943
-            // 先尝试匹配"发票代码"关键字
-            var match = Regex.Match(text, @"发票代码[：:]\s*(\d{10,})");
-            if (match.Success)
-                return match.Groups[1].Value;
-            
-            // 如果没有"发票代码"关键字，尝试在发票号码行附近查找
             // 格式：发票号码: 25447000001498458680 开票日期: 2025年11月14日
-            //       914419000585344943  （下一行通常是发票代码）
-            var invoiceNumMatch = Regex.Match(text, @"发票号码[：:]\s*\d{10,}.*?开票日期");
-            if (invoiceNumMatch.Success)
+            //       914419000585344943  （独立一行，在日期行之后）
+            var dateMatch = Regex.Match(text, @"开票日期[：:]\s*\d{4}年\d{1,2}月\d{1,2}日");
+            if (dateMatch.Success)
             {
-                int startPos = invoiceNumMatch.Index + invoiceNumMatch.Length;
-                string afterDate = text.Substring(startPos);
-                // 查找下一行的数字（通常是10-20位）
-                var codeMatch = Regex.Match(afterDate, @"^\s*(\d{10,20})", RegexOptions.Multiline);
-                if (codeMatch.Success)
-                    return codeMatch.Groups[1].Value;
+                int startPos = dateMatch.Index + dateMatch.Length;
+                if (startPos < text.Length)
+                {
+                    string afterDate = text.Substring(startPos, Math.Min(200, text.Length - startPos));
+                    // 查找下一行开头的数字（10-20位）
+                    var codeMatch = Regex.Match(afterDate, @"^\s*(\d{10,20})", RegexOptions.Multiline);
+                    if (codeMatch.Success)
+                        return codeMatch.Groups[1].Value.Trim();
+                }
             }
-            
-            return ExtractField(text, new[] { "发票代码", "代码" });
+            return "";
         }
 
         private string ExtractInvoiceDate(string text)
         {
-            // 匹配：开票日期: 2025年11月14日 或 2025年11月25日
+            // 格式：开票日期: 2025年11月14日
             var match = Regex.Match(text, @"开票日期[：:]\s*(\d{4}年\d{1,2}月\d{1,2}日)");
             if (match.Success)
                 return match.Groups[1].Value;
-            
-            return ExtractField(text, new[] { "开票日期", "日期" });
+            return "";
         }
 
         private string ExtractPurchaserName(string text)
         {
-            // 匹配：购买方信息后的名称
             // 格式：购买方信息\n税\n名称: 郑州琳之星通讯有限公司统一社会信用代码/纳税人识别号:
-            var match = Regex.Match(text, @"购买方信息[\s\S]*?名称[：:]\s*([^\n统一社会信用代码纳税人识别号/]{2,50})");
+            // 匹配"购买方"后面第一个"名称: "到"统一"之间的内容
+            var match = Regex.Match(text, @"购买方[\s\S]{0,300}?名称[：:]\s*([^\n统一社会信用代码纳税人识别号/：:]+?)(?:统一|$)");
             if (match.Success)
             {
                 string name = match.Groups[1].Value.Trim();
-                // 移除可能的后缀
-                name = Regex.Replace(name, @"统一.*$", "").Trim();
-                if (!string.IsNullOrWhiteSpace(name))
+                if (!string.IsNullOrWhiteSpace(name) && name.Length > 1)
                     return name;
             }
-            
-            // 备用方案：直接查找"名称: "后面的公司名
-            var nameMatch = Regex.Match(text, @"购买方[\s\S]*?名称[：:]\s*([^\n统一社会信用代码纳税人识别号/：:]{2,50})");
-            if (nameMatch.Success)
-            {
-                string name = nameMatch.Groups[1].Value.Trim();
-                name = Regex.Replace(name, @"统一.*$", "").Trim();
-                if (!string.IsNullOrWhiteSpace(name))
-                    return name;
-            }
-            
-            return ExtractField(text, new[] { "购买方", "买方" });
+            return "";
         }
 
         private string ExtractSellerName(string text)
         {
-            // 匹配：销售方信息后的名称
-            // 格式：销售\n方信息\n\n名称: 华为终端有限公司
-            var match = Regex.Match(text, @"销售[\s\S]*?方信息[\s\S]*?名称[：:]\s*([^\n统一社会信用代码纳税人识别号/：:]{2,50})");
+            // 格式：销售\n方信息\n\n名称: 华为终端有限公司统一社会信用代码/纳税人识别号:
+            // 匹配"销售"后面"方信息"后面第一个"名称: "到"统一"之间的内容
+            var match = Regex.Match(text, @"销售[\s\S]{0,300}?方信息[\s\S]{0,100}?名称[：:]\s*([^\n统一社会信用代码纳税人识别号/：:]+?)(?:统一|$)");
             if (match.Success)
             {
                 string name = match.Groups[1].Value.Trim();
-                name = Regex.Replace(name, @"统一.*$", "").Trim();
-                if (!string.IsNullOrWhiteSpace(name))
+                if (!string.IsNullOrWhiteSpace(name) && name.Length > 1)
                     return name;
             }
-            
-            // 备用方案：查找"销售"关键字后的"名称: "
-            var nameMatch = Regex.Match(text, @"销售[\s\S]*?名称[：:]\s*([^\n统一社会信用代码纳税人识别号/：:]{2,50})");
-            if (nameMatch.Success)
-            {
-                string name = nameMatch.Groups[1].Value.Trim();
-                name = Regex.Replace(name, @"统一.*$", "").Trim();
-                if (!string.IsNullOrWhiteSpace(name))
-                    return name;
-            }
-            
-            return ExtractField(text, new[] { "销售方", "卖方" });
+            return "";
         }
 
         private string ExtractTotalAmount(string text)
         {
-            // 匹配：金额合计 或 合计 后的数字
-            var match = Regex.Match(text, @"(?:金额合计|合计)[：:]*\s*(?:¥|￥)?\s*([\d,]+\.?\d*)");
+            // 格式：金额 2211.50（在同一行，金额和数字之间有空格）
+            var match = Regex.Match(text, @"金额\s+([\d,]+\.?\d*)");
             if (match.Success)
                 return match.Groups[1].Value;
-            
-            // 备用方案：查找"金额"关键字后的数字（格式：金额 2211.50）
-            var amountMatch = Regex.Match(text, @"金额\s+(?:¥|￥)?\s*([\d,]+\.?\d*)");
-            if (amountMatch.Success)
-                return amountMatch.Groups[1].Value;
-            
-            return ExtractField(text, new[] { "金额合计", "合计", "金额" });
+            return "";
         }
 
         private string ExtractTotalTax(string text)
         {
-            // 匹配：税额后的数字
-            var match = Regex.Match(text, @"税额\s*(?:¥|￥)?\s*([\d,]+\.?\d*)");
+            // 格式：税额 287.50
+            var match = Regex.Match(text, @"税额\s+([\d,]+\.?\d*)");
             if (match.Success)
                 return match.Groups[1].Value;
-            
-            return ExtractField(text, new[] { "税额", "税" });
+            return "";
         }
 
         private string ExtractAmountInFigures(string text)
         {
-            // 匹配：价税合计（小写）¥1983.32 或类似格式
-            var match = Regex.Match(text, @"价税合计[（(（]*[小]*[写]*[）)）]*[：:]*\s*(?:¥|￥)?\s*([\d,]+\.?\d*)");
+            // 格式：（小写）¥1983.32
+            var match = Regex.Match(text, @"（小写）[¥￥]?\s*([\d,]+\.?\d*)");
             if (match.Success)
                 return match.Groups[1].Value;
             
-            // 备用方案：查找"（小写）¥"后的数字（格式：（小写）¥1983.32）
-            var amountMatch = Regex.Match(text, @"（小写）[¥￥]\s*([\d,]+\.?\d*)");
-            if (amountMatch.Success)
-                return amountMatch.Groups[1].Value;
+            // 备用：小写）¥1983.32
+            var match2 = Regex.Match(text, @"小写[）)]\s*[¥￥]?\s*([\d,]+\.?\d*)");
+            if (match2.Success)
+                return match2.Groups[1].Value;
             
-            // 再尝试：查找"小写"后的数字
-            var amountMatch2 = Regex.Match(text, @"小写[）)]*\s*[¥￥]?\s*([\d,]+\.?\d*)");
-            if (amountMatch2.Success)
-                return amountMatch2.Groups[1].Value;
-            
-            return ExtractField(text, new[] { "价税合计", "总计" });
+            return "";
         }
 
         private string ExtractInvoiceType(string text)
