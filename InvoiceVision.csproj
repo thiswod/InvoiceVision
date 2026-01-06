@@ -9,14 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="WodToolKit" Version="1.0.1.4" />
     <PackageReference Include="EPPlus" Version="7.5.2" />
-    <PackageReference Include="WodToolKit" Version="1.0.1.9" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="WodToolkit">
-      <HintPath>..\WodToolkit\bin\Debug\netstandard2.1\WodToolkit.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
