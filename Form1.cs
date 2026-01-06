@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Extensions.Configuration;
 using OfficeOpenXml;
+using WodToolkit.Json;
 
 namespace InvoiceVision
 {
@@ -14,6 +15,8 @@ namespace InvoiceVision
     {
         private BaiDu? baiDu;
         private List<InvoiceData> invoiceResults = new List<InvoiceData>();
+        private string? apiKey;
+        private string? secretKey;
 
         public Form1()
         {
@@ -26,14 +29,42 @@ namespace InvoiceVision
         {
             try
             {
-                // UmiOCR 不需要 API 密钥，直接初始化
-                baiDu = new BaiDu();
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+                var configuration = builder.Build();
+                apiKey = configuration["BaiduOCR:ApiKey"] ?? "";
+                secretKey = configuration["BaiduOCR:SecretKey"] ?? "";
+
+                if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(secretKey))
+                {
+                    MessageBox.Show(
+                        "请在 appsettings.json 文件中配置百度OCR API密钥！\n\n" +
+                        "请参考 appsettings.example.json 文件格式进行配置。",
+                        "配置错误",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                baiDu = new BaiDu(apiKey, secretKey);
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show(
+                    "未找到 appsettings.json 配置文件！\n\n" +
+                    "请复制 appsettings.example.json 为 appsettings.json 并配置您的API密钥。",
+                    "配置文件缺失",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"初始化 OCR 时出错：{ex.Message}",
-                    "初始化错误",
+                    $"加载配置文件时出错：{ex.Message}\n\n" +
+                    "请检查 appsettings.json 文件格式是否正确。",
+                    "配置错误",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -68,9 +99,9 @@ namespace InvoiceVision
             if (baiDu == null)
             {
                 MessageBox.Show(
-                    "OCR未初始化！\n\n" +
-                    "请重新启动程序。",
-                    "初始化错误",
+                    "API密钥未配置！\n\n" +
+                    "请配置 appsettings.json 文件中的百度OCR API密钥。",
+                    "配置错误",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return;
@@ -112,13 +143,19 @@ namespace InvoiceVision
 
         private void ProcessImages()
         {
-            // UmiOCR 是本地 OCR，不需要 QPS 控制
+            int minDelayMs = 500; // 最小间隔500ms，确保不超过2 QPS
             int processedCount = 0;
 
             foreach (string imagePath in listBoxImages.Items.Cast<string>())
             {
                 try
                 {
+                    // 控制QPS：每次请求之间至少间隔500ms
+                    if (processedCount > 0)
+                    {
+                        System.Threading.Thread.Sleep(minDelayMs);
+                    }
+
                     ProcessSingleImage(imagePath);
                     processedCount++;
                     progressBar.Value = processedCount;
@@ -139,6 +176,10 @@ namespace InvoiceVision
         {
             try
             {
+                // 读取文件并转换为base64
+                byte[] fileBytes = File.ReadAllBytes(imagePath);
+                string base64Data = Convert.ToBase64String(fileBytes);
+
                 // 获取文件类型（根据文件扩展名）
                 string fileType = "png"; // 默认
                 string extension = Path.GetExtension(imagePath).ToLower();
@@ -153,23 +194,40 @@ namespace InvoiceVision
                 else if (extension == ".pdf")
                     fileType = "pdf";
 
-                // 调用UmiOCR识别
+                // 调用API识别
                 if (baiDu == null)
                 {
-                    throw new InvalidOperationException("OCR未初始化，无法进行识别。");
+                    throw new InvalidOperationException("API密钥未配置，无法进行识别。");
                 }
-                string resultText = baiDu.vat_invoice(imagePath, fileType);
+                string resultJson = baiDu.vat_invoice(base64Data, fileType);
 
-                // UmiOCR 返回的是纯文本，需要解析
-                if (string.IsNullOrWhiteSpace(resultText))
+                // 解析JSON结果
+                dynamic result = EasyJson.ParseJsonToDynamic(resultJson);
+                
+                // 检查是否有words_result字段，有则表示识别成功
+                if (result.words_result != null)
                 {
-                    throw new Exception("识别结果为空");
+                    var invoiceData = ParseInvoiceData(result.words_result, imagePath);
+                    invoiceResults.Add(invoiceData);
+                    AddInvoiceToListView(invoiceData);
                 }
-
-                // 解析文本结果，提取发票信息
-                var invoiceData = ParseInvoiceDataFromText(resultText, imagePath);
-                invoiceResults.Add(invoiceData);
-                AddInvoiceToListView(invoiceData);
+                else
+                {
+                    // 如果没有words_result，可能是出错了，尝试获取错误信息
+                    string errorMsg = "识别结果为空";
+                    try
+                    {
+                        if (result.error_code != null)
+                        {
+                            errorMsg = $"API返回错误: {result.error_msg ?? "未知错误"} (错误码: {result.error_code})";
+                        }
+                    }
+                    catch
+                    {
+                        // 如果无法获取错误信息，使用默认消息
+                    }
+                    throw new Exception(errorMsg);
+                }
             }
             catch (Exception ex)
             {
@@ -178,285 +236,39 @@ namespace InvoiceVision
             }
         }
 
-        private InvoiceData ParseInvoiceDataFromText(string text, string imagePath)
+        private InvoiceData ParseInvoiceData(dynamic wordsResult, string imagePath)
         {
-            // 从文本中提取发票信息（使用正则表达式和关键字匹配）
+            string invoiceNum = GetStringValue(wordsResult.InvoiceNum);
+            string invoiceCode = GetStringValue(wordsResult.InvoiceCode);
+            
+            // 如果发票代码为空，使用InvoiceNum作为发票代码
+            // 根据用户反馈，InvoiceNum实际上就是发票代码
+            if (string.IsNullOrEmpty(invoiceCode) && !string.IsNullOrEmpty(invoiceNum))
+            {
+                invoiceCode = invoiceNum;
+            }
+
             var invoice = new InvoiceData
             {
                 ImagePath = imagePath,
-                InvoiceNum = ExtractInvoiceNum(text),
-                InvoiceCode = ExtractInvoiceCode(text),
-                InvoiceDate = ExtractInvoiceDate(text),
-                PurchaserName = ExtractPurchaserName(text),
-                SellerName = ExtractSellerName(text),
-                TotalAmount = ExtractTotalAmount(text),
-                TotalTax = ExtractTotalTax(text),
-                AmountInFiguers = ExtractAmountInFigures(text),
-                InvoiceType = ExtractInvoiceType(text),
-                RawData = text
+                InvoiceNum = invoiceNum,
+                InvoiceCode = invoiceCode,
+                InvoiceDate = GetStringValue(wordsResult.InvoiceDate),
+                PurchaserName = GetStringValue(wordsResult.PurchaserName),
+                SellerName = GetStringValue(wordsResult.SellerName),
+                TotalAmount = GetStringValue(wordsResult.TotalAmount),
+                TotalTax = GetStringValue(wordsResult.TotalTax),
+                AmountInFiguers = GetStringValue(wordsResult.AmountInFiguers),
+                InvoiceType = GetStringValue(wordsResult.InvoiceType),
+                RawData = wordsResult
             };
-
-            // 如果发票代码为空，使用InvoiceNum作为发票代码
-            if (string.IsNullOrEmpty(invoice.InvoiceCode) && !string.IsNullOrEmpty(invoice.InvoiceNum))
-            {
-                invoice.InvoiceCode = invoice.InvoiceNum;
-            }
-
             return invoice;
-        }
-
-        private string ExtractInvoiceNum(string text)
-        {
-            // 格式：发票号码: 25447000001498458680
-            var match = Regex.Match(text, @"发票号码[：:]\s*(\d{12,})");
-            if (match.Success)
-                return match.Groups[1].Value;
-            return "";
-        }
-
-        private string ExtractInvoiceCode(string text)
-        {
-            // 格式：发票号码: 25447000001498458680 开票日期: 2025年11月14日
-            //       914419000585344943  （独立一行，在日期行之后）
-            var dateMatch = Regex.Match(text, @"开票日期[：:]\s*\d{4}年\d{1,2}月\d{1,2}日");
-            if (dateMatch.Success)
-            {
-                int startPos = dateMatch.Index + dateMatch.Length;
-                if (startPos < text.Length)
-                {
-                    string afterDate = text.Substring(startPos, Math.Min(200, text.Length - startPos));
-                    // 查找下一行开头的数字（10-20位）
-                    var codeMatch = Regex.Match(afterDate, @"^\s*(\d{10,20})", RegexOptions.Multiline);
-                    if (codeMatch.Success)
-                        return codeMatch.Groups[1].Value.Trim();
-                }
-            }
-            return "";
-        }
-
-        private string ExtractInvoiceDate(string text)
-        {
-            // 格式：开票日期: 2025年11月14日
-            var match = Regex.Match(text, @"开票日期[：:]\s*(\d{4}年\d{1,2}月\d{1,2}日)");
-            if (match.Success)
-                return match.Groups[1].Value;
-            return "";
-        }
-
-        private string ExtractPurchaserName(string text)
-        {
-            // 格式：购买方信息\n税\n名称: 郑州琳之星通讯有限公司统一社会信用代码/纳税人识别号:
-            // 匹配"购买方"后面第一个"名称: "到"统一"之间的内容
-            var match = Regex.Match(text, @"购买方[\s\S]{0,300}?名称[：:]\s*([^\n统一社会信用代码纳税人识别号/：:]+?)(?:统一|$)");
-            if (match.Success)
-            {
-                string name = match.Groups[1].Value.Trim();
-                if (!string.IsNullOrWhiteSpace(name) && name.Length > 1)
-                    return name;
-            }
-            return "";
-        }
-
-        private string ExtractSellerName(string text)
-        {
-            // 格式：销售\n方信息\n\n名称: 华为终端有限公司统一社会信用代码/纳税人识别号:
-            // 匹配"销售"后面"方信息"后面第一个"名称: "到"统一"之间的内容
-            var match = Regex.Match(text, @"销售[\s\S]{0,300}?方信息[\s\S]{0,100}?名称[：:]\s*([^\n统一社会信用代码纳税人识别号/：:]+?)(?:统一|$)");
-            if (match.Success)
-            {
-                string name = match.Groups[1].Value.Trim();
-                if (!string.IsNullOrWhiteSpace(name) && name.Length > 1)
-                    return name;
-            }
-            return "";
-        }
-
-        private string ExtractTotalAmount(string text)
-        {
-            // 格式：金额 2211.50（在同一行，金额和数字之间有空格）
-            var match = Regex.Match(text, @"金额\s+([\d,]+\.?\d*)");
-            if (match.Success)
-                return match.Groups[1].Value;
-            return "";
-        }
-
-        private string ExtractTotalTax(string text)
-        {
-            // 格式：税额 287.50
-            var match = Regex.Match(text, @"税额\s+([\d,]+\.?\d*)");
-            if (match.Success)
-                return match.Groups[1].Value;
-            return "";
-        }
-
-        private string ExtractAmountInFigures(string text)
-        {
-            // 格式：（小写）¥1983.32
-            var match = Regex.Match(text, @"（小写）[¥￥]?\s*([\d,]+\.?\d*)");
-            if (match.Success)
-                return match.Groups[1].Value;
-            
-            // 备用：小写）¥1983.32
-            var match2 = Regex.Match(text, @"小写[）)]\s*[¥￥]?\s*([\d,]+\.?\d*)");
-            if (match2.Success)
-                return match2.Groups[1].Value;
-            
-            return "";
-        }
-
-        private string ExtractInvoiceType(string text)
-        {
-            // 匹配发票类型
-            var match = Regex.Match(text, @"(?:电子发票|增值税专用发票|增值税普通发票|普通发票)");
-            if (match.Success)
-                return match.Value;
-            
-            return ExtractField(text, new[] { "发票类型", "类型" });
-        }
-
-        private string ExtractField(string text, string[] keywords)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-                return "";
-
-            foreach (var keyword in keywords)
-            {
-                int index = text.IndexOf(keyword, StringComparison.OrdinalIgnoreCase);
-                if (index >= 0)
-                {
-                    // 尝试提取关键字后的内容
-                    int startIndex = index + keyword.Length;
-                    string remaining = text.Substring(startIndex).Trim();
-                    
-                    // 跳过冒号（中文或英文）
-                    if (remaining.StartsWith(":") || remaining.StartsWith("："))
-                        remaining = remaining.Substring(1).Trim();
-                    
-                    // 跳过空格
-                    remaining = remaining.TrimStart();
-                    
-                    // 提取到换行符、制表符或下一个关键字之前的内容
-                    int endIndex = -1;
-                    
-                    // 查找换行符
-                    int newlineIndex = remaining.IndexOfAny(new[] { '\r', '\n' });
-                    if (newlineIndex > 0)
-                        endIndex = newlineIndex;
-                    
-                    // 查找制表符
-                    int tabIndex = remaining.IndexOf('\t');
-                    if (tabIndex > 0 && (endIndex < 0 || tabIndex < endIndex))
-                        endIndex = tabIndex;
-                    
-                    // 对于某些字段，查找下一个可能的关键字
-                    if (keyword.Contains("号码") || keyword.Contains("日期"))
-                    {
-                        // 对于发票号码和日期，可能在空格分隔的同一行，查找下一个关键字
-                        int spaceIndex = remaining.IndexOf(' ');
-                        if (spaceIndex > 0 && spaceIndex < 50) // 限制在合理范围内
-                        {
-                            string potentialValue = remaining.Substring(0, spaceIndex).Trim();
-                            // 如果看起来像是一个完整的值（如发票号码通常是数字），使用它
-                            if (potentialValue.Length > 5 && !potentialValue.Contains("信息") && !potentialValue.Contains("名称"))
-                            {
-                                return potentialValue;
-                            }
-                        }
-                    }
-                    
-                    if (endIndex > 0)
-                    {
-                        string value = remaining.Substring(0, endIndex).Trim();
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            // 清理值，移除常见的后缀关键字
-                            value = value.Split(new[] { "统一", "社会", "信用", "代码", "纳税人", "识别号" }, StringSplitOptions.None)[0].Trim();
-                            if (!string.IsNullOrWhiteSpace(value))
-                                return value;
-                        }
-                    }
-                    else if (remaining.Length > 0)
-                    {
-                        // 如果没有明确的结束符，尝试提取前100个字符
-                        string value = remaining.Length > 100 ? remaining.Substring(0, 100).Trim() : remaining.Trim();
-                        // 尝试在空格或常见分隔符处截断
-                        int cutIndex = value.IndexOfAny(new[] { ' ', '统', '社', '信', '代', '纳', '税', '人', '识', '别', '号' });
-                        if (cutIndex > 0 && cutIndex < 80)
-                            value = value.Substring(0, cutIndex).Trim();
-                        if (!string.IsNullOrWhiteSpace(value))
-                            return value;
-                    }
-                }
-            }
-            return "";
         }
 
         private string GetStringValue(dynamic value)
         {
             if (value == null) return "";
             return value.ToString();
-        }
-
-        /// <summary>
-        /// 安全地检查动态对象是否包含指定属性
-        /// </summary>
-        private bool HasProperty(dynamic obj, string propertyName)
-        {
-            if (obj == null) return false;
-            
-            try
-            {
-                // ExpandoObject实现了IDictionary<string, object>接口
-                if (obj is System.Collections.Generic.IDictionary<string, object> dict)
-                {
-                    return dict.ContainsKey(propertyName);
-                }
-                
-                // 如果转换失败，尝试使用反射
-                var type = ((object)obj).GetType();
-                return type.GetProperty(propertyName) != null || type.GetField(propertyName) != null;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 安全地获取动态对象的属性值
-        /// </summary>
-        private dynamic GetPropertyValue(dynamic obj, string propertyName)
-        {
-            if (obj == null) return null;
-            
-            try
-            {
-                // ExpandoObject实现了IDictionary<string, object>接口
-                if (obj is System.Collections.Generic.IDictionary<string, object> dict)
-                {
-                    return dict.TryGetValue(propertyName, out var value) ? value : null;
-                }
-                
-                // 如果转换失败，尝试使用反射
-                var type = ((object)obj).GetType();
-                var property = type.GetProperty(propertyName);
-                if (property != null)
-                {
-                    return property.GetValue(obj);
-                }
-                
-                var field = type.GetField(propertyName);
-                if (field != null)
-                {
-                    return field.GetValue(obj);
-                }
-                
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         private void AddInvoiceToListView(InvoiceData invoice)
@@ -540,9 +352,9 @@ namespace InvoiceVision
                     worksheet.Cells[row, 2].Value = invoice.InvoiceCode;
                     worksheet.Cells[row, 3].Value = invoice.InvoiceDate;
                     worksheet.Cells[row, 4].Value = invoice.PurchaserName;
-                    worksheet.Cells[row, 5].Value = ExtractField(invoice.RawData?.ToString() ?? "", new[] { "购买方税号", "购买方纳税人识别号" });
+                    worksheet.Cells[row, 5].Value = GetStringValue(invoice.RawData?.PurchaserRegisterNum);
                     worksheet.Cells[row, 6].Value = invoice.SellerName;
-                    worksheet.Cells[row, 7].Value = ExtractField(invoice.RawData?.ToString() ?? "", new[] { "销售方税号", "销售方纳税人识别号" });
+                    worksheet.Cells[row, 7].Value = GetStringValue(invoice.RawData?.SellerRegisterNum);
                     worksheet.Cells[row, 8].Value = invoice.TotalAmount;
                     worksheet.Cells[row, 9].Value = invoice.TotalTax;
                     worksheet.Cells[row, 10].Value = invoice.AmountInFiguers;
