@@ -41,7 +41,7 @@ namespace InvoiceVision
                 {
                     MessageBox.Show(
                         "è¯·åœ¨ appsettings.json æ–‡ä»¶ä¸­é…ç½®ç™¾åº¦OCR APIå¯†é’¥ï¼\n\n" +
-                        "è¯·å‚è€ƒ appsettings.example.json æ–‡ä»¶æ ¼å¼è¿›è¡Œé…ç½®ã€‚",
+                        "è¯·å‚è€?appsettings.example.json æ–‡ä»¶æ ¼å¼è¿›è¡Œé…ç½®ã€?,
                         "é…ç½®é”™è¯¯",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
@@ -53,8 +53,8 @@ namespace InvoiceVision
             catch (FileNotFoundException)
             {
                 MessageBox.Show(
-                    "æœªæ‰¾åˆ° appsettings.json é…ç½®æ–‡ä»¶ï¼\n\n" +
-                    "è¯·å¤åˆ¶ appsettings.example.json ä¸º appsettings.json å¹¶é…ç½®æ‚¨çš„APIå¯†é’¥ã€‚",
+                    "æœªæ‰¾åˆ?appsettings.json é…ç½®æ–‡ä»¶ï¼\n\n" +
+                    "è¯·å¤åˆ?appsettings.example.json ä¸?appsettings.json å¹¶é…ç½®æ‚¨çš„APIå¯†é’¥ã€?,
                     "é…ç½®æ–‡ä»¶ç¼ºå¤±",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -63,7 +63,7 @@ namespace InvoiceVision
             {
                 MessageBox.Show(
                     $"åŠ è½½é…ç½®æ–‡ä»¶æ—¶å‡ºé”™ï¼š{ex.Message}\n\n" +
-                    "è¯·æ£€æŸ¥ appsettings.json æ–‡ä»¶æ ¼å¼æ˜¯å¦æ­£ç¡®ã€‚",
+                    "è¯·æ£€æŸ?appsettings.json æ–‡ä»¶æ ¼å¼æ˜¯å¦æ­£ç¡®ã€?,
                     "é…ç½®é”™è¯¯",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -100,7 +100,7 @@ namespace InvoiceVision
             {
                 MessageBox.Show(
                     "APIå¯†é’¥æœªé…ç½®ï¼\n\n" +
-                    "è¯·é…ç½® appsettings.json æ–‡ä»¶ä¸­çš„ç™¾åº¦OCR APIå¯†é’¥ã€‚",
+                    "è¯·é…ç½?appsettings.json æ–‡ä»¶ä¸­çš„ç™¾åº¦OCR APIå¯†é’¥ã€?,
                     "é…ç½®é”™è¯¯",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -109,7 +109,7 @@ namespace InvoiceVision
 
             if (listBoxImages.Items.Count == 0)
             {
-                MessageBox.Show("è¯·å…ˆé€‰æ‹©å›¾ç‰‡æˆ–PDFæ–‡ä»¶ï¼", "æç¤º", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("è¯·å…ˆé€‰æ‹©å›¾ç‰‡æˆ–PDFæ–‡ä»¶ï¼?, "æç¤º", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -125,7 +125,7 @@ namespace InvoiceVision
             try
             {
                 ProcessImages();
-                labelStatus.Text = $"è¯†åˆ«å®Œæˆï¼Œå…±è¯†åˆ« {invoiceResults.Count} å¼ å‘ç¥¨";
+                labelStatus.Text = $"è¯†åˆ«å®Œæˆï¼Œå…±è¯†åˆ« {invoiceResults.Count} å¼ å‘ç¥?;
                 btnExport.Enabled = invoiceResults.Count > 0;
             }
             catch (Exception ex)
@@ -143,14 +143,14 @@ namespace InvoiceVision
 
         private void ProcessImages()
         {
-            int minDelayMs = 500; // æœ€å°é—´éš”500msï¼Œç¡®ä¿ä¸è¶…è¿‡2 QPS
+            int minDelayMs = 500; // æœ€å°é—´éš?00msï¼Œç¡®ä¿ä¸è¶…è¿‡2 QPS
             int processedCount = 0;
 
             foreach (string imagePath in listBoxImages.Items.Cast<string>())
             {
                 try
                 {
-                    // æ§åˆ¶QPSï¼šæ¯æ¬¡è¯·æ±‚ä¹‹é—´è‡³å°‘é—´éš”500ms
+                    // æ§åˆ¶QPSï¼šæ¯æ¬¡è¯·æ±‚ä¹‹é—´è‡³å°‘é—´éš?00ms
                     if (processedCount > 0)
                     {
                         System.Threading.Thread.Sleep(minDelayMs);
@@ -164,7 +164,7 @@ namespace InvoiceVision
                 }
                 catch (Exception ex)
                 {
-                    labelStatus.Text = $"å¤„ç† {Path.GetFileName(imagePath)} æ—¶å‡ºé”™: {ex.Message}";
+                    labelStatus.Text = $"å¤„ç† {Path.GetFileName(imagePath)} æ—¶å‡ºé”? {ex.Message}";
                     processedCount++;
                     progressBar.Value = processedCount;
                     Application.DoEvents(); // æ›´æ–°UI
@@ -180,7 +180,7 @@ namespace InvoiceVision
                 byte[] fileBytes = File.ReadAllBytes(imagePath);
                 string base64Data = Convert.ToBase64String(fileBytes);
 
-                // è·å–æ–‡ä»¶ç±»å‹ï¼ˆæ ¹æ®æ–‡ä»¶æ‰©å±•åï¼‰
+                // è·å–æ–‡ä»¶ç±»å‹ï¼ˆæ ¹æ®æ–‡ä»¶æ‰©å±•åï¼?
                 string fileType = "png"; // é»˜è®¤
                 string extension = Path.GetExtension(imagePath).ToLower();
                 if (extension == ".jpg" || extension == ".jpeg")
@@ -197,39 +197,39 @@ namespace InvoiceVision
                 // è°ƒç”¨APIè¯†åˆ«
                 if (baiDu == null)
                 {
-                    throw new InvalidOperationException("APIå¯†é’¥æœªé…ç½®ï¼Œæ— æ³•è¿›è¡Œè¯†åˆ«ã€‚");
+                    throw new InvalidOperationException("APIå¯†é’¥æœªé…ç½®ï¼Œæ— æ³•è¿›è¡Œè¯†åˆ«ã€?);
                 }
                 
-                // è®°å½•è°ƒè¯•ä¿¡æ¯åˆ°æ–‡ä»¶
+                // ¼ÇÂ¼µ÷ÊÔĞÅÏ¢µ½ÎÄ¼ş
                 System.Text.StringBuilder logBuilder = new System.Text.StringBuilder();
-                logBuilder.AppendLine($"[{DateTime.Now}] å¼€å§‹è°ƒç”¨API...");
+                logBuilder.AppendLine($"[{DateTime.Now}] ¿ªÊ¼µ÷ÓÃAPI...");
                 
                 string resultJson = baiDu.vat_invoice(base64Data, fileType);
-                logBuilder.AppendLine($"[{DateTime.Now}] APIè°ƒç”¨å®Œæˆ");
+                logBuilder.AppendLine($"[{DateTime.Now}] APIµ÷ÓÃÍê³É");
                 
-                // è¾“å‡ºAPIè¿”å›ç»“æœçš„å‰500ä¸ªå­—ç¬¦ï¼Œä»¥ä¾¿äº†è§£å…¶ç»“æ„
-                logBuilder.AppendLine($"[{DateTime.Now}] APIè¿”å›ç»“æœå‰500ä¸ªå­—ç¬¦: {resultJson.Substring(0, Math.Min(500, resultJson.Length))}");
+                // Êä³öAPI·µ»Ø½á¹ûµÄÇ°500¸ö×Ö·û£¬ÒÔ±ãÁË½âÆä½á¹¹
+                logBuilder.AppendLine($"[{DateTime.Now}] API·µ»Ø½á¹ûÇ°500¸ö×Ö·û: {resultJson.Substring(0, Math.Min(500, resultJson.Length))}");
 
-                // ä¿å­˜APIè¿”å›çš„ç»“æœåˆ°æ–‡ä»¶ï¼Œä»¥ä¾¿æŸ¥çœ‹å…¶ç»“æ„
+                // ±£´æAPI·µ»ØµÄ½á¹ûµ½ÎÄ¼ş£¬ÒÔ±ã²é¿´Æä½á¹¹
                 try
                 {
                     string fileName = Path.GetFileNameWithoutExtension(imagePath);
                     string outputPath = $"api_result_{fileName}.json";
                     System.IO.File.WriteAllText(outputPath, resultJson, System.Text.Encoding.UTF8);
-                    logBuilder.AppendLine($"[{DateTime.Now}] APIè¿”å›ç»“æœå·²ä¿å­˜åˆ° {outputPath} æ–‡ä»¶");
+                    logBuilder.AppendLine($"[{DateTime.Now}] API·µ»Ø½á¹ûÒÑ±£´æµ½ {outputPath} ÎÄ¼ş");
                 }
                 catch (Exception ex)
                 {
-                    logBuilder.AppendLine($"[{DateTime.Now}] ä¿å­˜APIç»“æœæ—¶å‡ºé”™: {ex.Message}");
-                    logBuilder.AppendLine($"[{DateTime.Now}] é”™è¯¯å †æ ˆ: {ex.StackTrace}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ±£´æAPI½á¹ûÊ±³ö´í: {ex.Message}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ´íÎó¶ÑÕ»: {ex.StackTrace}");
                 }
 
-                // è§£æJSONç»“æœ
-                logBuilder.AppendLine($"[{DateTime.Now}] å¼€å§‹è§£æJSONç»“æœ...");
+                // ½âÎöJSON½á¹û
+                logBuilder.AppendLine($"[{DateTime.Now}] ¿ªÊ¼½âÎöJSON½á¹û...");
                 dynamic result = EasyJson.ParseJsonToDynamic(resultJson);
-                logBuilder.AppendLine($"[{DateTime.Now}] JSONç»“æœè§£æå®Œæˆ");
+                logBuilder.AppendLine($"[{DateTime.Now}] JSON½á¹û½âÎöÍê³É");
                 
-                // ä¿å­˜è°ƒè¯•æ—¥å¿—åˆ°æ–‡ä»¶
+                // ±£´æµ÷ÊÔÈÕÖ¾µ½ÎÄ¼ş
                 try
                 {
                     string logPath = "debug_log.txt";
@@ -237,10 +237,10 @@ namespace InvoiceVision
                 }
                 catch (Exception ex)
                 {
-                    // å¿½ç•¥ä¿å­˜æ—¥å¿—æ—¶çš„é”™è¯¯
+                    // ºöÂÔ±£´æÈÕÖ¾Ê±µÄ´íÎó
                 }
                 
-                // æ£€æŸ¥æ˜¯å¦æœ‰words_resultå­—æ®µï¼Œæœ‰åˆ™è¡¨ç¤ºè¯†åˆ«æˆåŠŸ
+                // ¼ì²éÊÇ·ñÓĞwords_result×Ö¶Î£¬ÓĞÔò±íÊ¾Ê¶±ğ³É¹¦
                 if (result.words_result != null)
                 {
                     var invoiceData = ParseInvoiceData(result.words_result, imagePath);
@@ -249,26 +249,26 @@ namespace InvoiceVision
                 }
                 else
                 {
-                    // å¦‚æœæ²¡æœ‰words_resultï¼Œå¯èƒ½æ˜¯å‡ºé”™äº†ï¼Œå°è¯•è·å–é”™è¯¯ä¿¡æ¯
-                    string errorMsg = "è¯†åˆ«ç»“æœä¸ºç©º";
+                    // Èç¹ûÃ»ÓĞwords_result£¬¿ÉÄÜÊÇ³ö´íÁË£¬³¢ÊÔ»ñÈ¡´íÎóĞÅÏ¢
+                    string errorMsg = "Ê¶±ğ½á¹ûÎª¿Õ";
                     try
                     {
                         if (result.error_code != null)
                         {
-                            errorMsg = $"APIè¿”å›é”™è¯¯: {result.error_msg ?? "æœªçŸ¥é”™è¯¯"} (é”™è¯¯ç : {result.error_code})";
+                            errorMsg = $"API·µ»Ø´íÎó: {result.error_msg ?? "Î´Öª´íÎó"} (´íÎóÂë: {result.error_code})";
                         }
                     }
                     catch
                     {
-                        // å¦‚æœæ— æ³•è·å–é”™è¯¯ä¿¡æ¯ï¼Œä½¿ç”¨é»˜è®¤æ¶ˆæ¯
+                        // Èç¹ûÎŞ·¨»ñÈ¡´íÎóĞÅÏ¢£¬Ê¹ÓÃÄ¬ÈÏÏûÏ¢
                     }
                     throw new Exception(errorMsg);
                 }
             }
             catch (Exception ex)
             {
-                string fileType = Path.GetExtension(imagePath).ToLower() == ".pdf" ? "PDFæ–‡ä»¶" : "å›¾ç‰‡";
-                throw new Exception($"å¤„ç†{fileType} {Path.GetFileName(imagePath)} æ—¶å‡ºé”™: {ex.Message}", ex);
+                string fileType = Path.GetExtension(imagePath).ToLower() == ".pdf" ? "PDFÎÄ¼ş" : "Í¼Æ¬";
+                throw new Exception($"´¦Àí{fileType} {Path.GetFileName(imagePath)} Ê±³ö´í: {ex.Message}", ex);
             }
         }
 
@@ -277,8 +277,8 @@ namespace InvoiceVision
             string invoiceNum = GetStringValue(wordsResult.InvoiceNum);
             string invoiceCode = GetStringValue(wordsResult.InvoiceCode);
             
-            // å¦‚æœå‘ç¥¨ä»£ç ä¸ºç©ºï¼Œä½¿ç”¨InvoiceNumä½œä¸ºå‘ç¥¨ä»£ç 
-            // æ ¹æ®ç”¨æˆ·åé¦ˆï¼ŒInvoiceNumå®é™…ä¸Šå°±æ˜¯å‘ç¥¨ä»£ç 
+            // Èç¹û·¢Æ±´úÂëÎª¿Õ£¬Ê¹ÓÃInvoiceNum×÷Îª·¢Æ±´úÂë
+            // ¸ù¾İÓÃ»§·´À¡£¬InvoiceNumÊµ¼ÊÉÏ¾ÍÊÇ·¢Æ±´úÂë
             if (string.IsNullOrEmpty(invoiceCode) && !string.IsNullOrEmpty(invoiceNum))
             {
                 invoiceCode = invoiceNum;
@@ -301,15 +301,15 @@ namespace InvoiceVision
                 RawData = wordsResult
             };
 
-            // æå–å•†å“æ˜ç»†ä¿¡æ¯
+            // ÌáÈ¡ÉÌÆ·Ã÷Ï¸ĞÅÏ¢
             try
             {
-                // è®°å½•è°ƒè¯•ä¿¡æ¯
+                // ¼ÇÂ¼µ÷ÊÔĞÅÏ¢
                 System.Text.StringBuilder logBuilder = new System.Text.StringBuilder();
-                logBuilder.AppendLine($"[{DateTime.Now}] å¼€å§‹æå–å•†å“æ˜ç»†ä¿¡æ¯");
+                logBuilder.AppendLine($"[{DateTime.Now}] ¿ªÊ¼ÌáÈ¡ÉÌÆ·Ã÷Ï¸ĞÅÏ¢");
 
-                // æ ¹æ®APIè¿”å›çš„å®é™…ç»“æ„æå–å•†å“æ˜ç»†ä¿¡æ¯
-                // å•†å“ä¿¡æ¯åˆ†æ•£åœ¨ä¸åŒçš„å­—æ®µä¸­ï¼Œéƒ½æ˜¯æ•°ç»„å½¢å¼
+                // ¸ù¾İAPI·µ»ØµÄÊµ¼Ê½á¹¹ÌáÈ¡ÉÌÆ·Ã÷Ï¸ĞÅÏ¢
+                // ÉÌÆ·ĞÅÏ¢·ÖÉ¢ÔÚ²»Í¬µÄ×Ö¶ÎÖĞ£¬¶¼ÊÇÊı×éĞÎÊ½
                 var commodityNames = GetArrayValue(wordsResult.CommodityName);
                 var commodityUnits = GetArrayValue(wordsResult.CommodityUnit);
                 var commodityNums = GetArrayValue(wordsResult.CommodityNum);
@@ -318,7 +318,7 @@ namespace InvoiceVision
                 var commodityTaxRates = GetArrayValue(wordsResult.CommodityTaxRate);
                 var commodityTaxes = GetArrayValue(wordsResult.CommodityTax);
 
-                // è®¡ç®—å•†å“æ•°é‡ï¼Œå–æ‰€æœ‰æ•°ç»„ä¸­é•¿åº¦æœ€å¤§çš„é‚£ä¸ª
+                // ¼ÆËãÉÌÆ·ÊıÁ¿£¬È¡ËùÓĞÊı×éÖĞ³¤¶È×î´óµÄÄÇ¸ö
                 int itemCount = Math.Max(
                     Math.Max(Math.Max(commodityNames.Length, commodityUnits.Length), 
                     Math.Max(commodityNums.Length, commodityPrices.Length)),
@@ -326,16 +326,16 @@ namespace InvoiceVision
                     commodityTaxes.Length)
                 );
 
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“æ•°é‡: {itemCount}");
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“åç§°æ•°é‡: {commodityNames.Length}");
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“å•ä½æ•°é‡: {commodityUnits.Length}");
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“æ•°é‡æ•°é‡: {commodityNums.Length}");
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“å•ä»·æ•°é‡: {commodityPrices.Length}");
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“é‡‘é¢æ•°é‡: {commodityAmounts.Length}");
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“ç¨ç‡æ•°é‡: {commodityTaxRates.Length}");
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“ç¨é¢æ•°é‡: {commodityTaxes.Length}");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·ÊıÁ¿: {itemCount}");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·Ãû³ÆÊıÁ¿: {commodityNames.Length}");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·µ¥Î»ÊıÁ¿: {commodityUnits.Length}");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·ÊıÁ¿ÊıÁ¿: {commodityNums.Length}");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·µ¥¼ÛÊıÁ¿: {commodityPrices.Length}");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·½ğ¶îÊıÁ¿: {commodityAmounts.Length}");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·Ë°ÂÊÊıÁ¿: {commodityTaxRates.Length}");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·Ë°¶îÊıÁ¿: {commodityTaxes.Length}");
 
-                // æå–å•†å“æ˜ç»†ä¿¡æ¯
+                // ÌáÈ¡ÉÌÆ·Ã÷Ï¸ĞÅÏ¢
                 for (int i = 0; i < itemCount; i++)
                 {
                     var commodityItem = new CommodityItem
@@ -349,10 +349,10 @@ namespace InvoiceVision
                         Tax = i < commodityTaxes.Length ? commodityTaxes[i] : ""
                     };
                     
-                    // å°è¯•ä»å•†å“åç§°ä¸­æå–è§„æ ¼å‹å·
+                    // ³¢ÊÔ´ÓÉÌÆ·Ãû³ÆÖĞÌáÈ¡¹æ¸ñĞÍºÅ
                     if (string.IsNullOrEmpty(commodityItem.Specification) && !string.IsNullOrEmpty(commodityItem.Name))
                     {
-                        // ç®€å•çš„è§„åˆ™ï¼šå¦‚æœå•†å“åç§°åŒ…å«ç©ºæ ¼ï¼Œå°è¯•å°†æœ€åä¸€éƒ¨åˆ†ä½œä¸ºè§„æ ¼å‹å·
+                        // ¼òµ¥µÄ¹æÔò£ºÈç¹ûÉÌÆ·Ãû³Æ°üº¬¿Õ¸ñ£¬³¢ÊÔ½«×îºóÒ»²¿·Ö×÷Îª¹æ¸ñĞÍºÅ
                         string[] parts = commodityItem.Name.Split(' ');
                         if (parts.Length > 1)
                         {
@@ -361,47 +361,47 @@ namespace InvoiceVision
                     }
                     
                     invoice.CommodityItems.Add(commodityItem);
-                    logBuilder.AppendLine($"[{DateTime.Now}] æ·»åŠ å•†å“: {commodityItem.Name}");
-                    logBuilder.AppendLine($"[{DateTime.Now}] å•†å“å•ä½: {commodityItem.Unit}");
-                    logBuilder.AppendLine($"[{DateTime.Now}] å•†å“æ•°é‡: {commodityItem.Quantity}");
-                    logBuilder.AppendLine($"[{DateTime.Now}] å•†å“å•ä»·: {commodityItem.Price}");
-                    logBuilder.AppendLine($"[{DateTime.Now}] å•†å“é‡‘é¢: {commodityItem.Amount}");
-                    logBuilder.AppendLine($"[{DateTime.Now}] å•†å“ç¨ç‡: {commodityItem.TaxRate}");
-                    logBuilder.AppendLine($"[{DateTime.Now}] å•†å“ç¨é¢: {commodityItem.Tax}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] Ìí¼ÓÉÌÆ·: {commodityItem.Name}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·µ¥Î»: {commodityItem.Unit}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·ÊıÁ¿: {commodityItem.Quantity}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·µ¥¼Û: {commodityItem.Price}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·½ğ¶î: {commodityItem.Amount}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·Ë°ÂÊ: {commodityItem.TaxRate}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·Ë°¶î: {commodityItem.Tax}");
                 }
 
-                logBuilder.AppendLine($"[{DateTime.Now}] å•†å“æ˜ç»†æå–å®Œæˆï¼Œå…± {invoice.CommodityItems.Count} ä¸ªå•†å“");
+                logBuilder.AppendLine($"[{DateTime.Now}] ÉÌÆ·Ã÷Ï¸ÌáÈ¡Íê³É£¬¹² {invoice.CommodityItems.Count} ¸öÉÌÆ·");
                 
-                // ä¿å­˜è°ƒè¯•æ—¥å¿—
+                // ±£´æµ÷ÊÔÈÕÖ¾
                 try
                 {
                     System.IO.File.AppendAllText("parse_log.txt", logBuilder.ToString(), System.Text.Encoding.UTF8);
                 }
                 catch (Exception ex)
                 {
-                    // å¿½ç•¥ä¿å­˜æ—¥å¿—æ—¶çš„é”™è¯¯
+                    // ºöÂÔ±£´æÈÕÖ¾Ê±µÄ´íÎó
                 }
             }
             catch (Exception ex)
             {
-                // å•†å“æ˜ç»†è§£æå¤±è´¥ï¼Œè®°å½•é”™è¯¯ä½†ä¸å½±å“æ•´ä½“è§£æ
+                // ÉÌÆ·Ã÷Ï¸½âÎöÊ§°Ü£¬¼ÇÂ¼´íÎóµ«²»Ó°ÏìÕûÌå½âÎö
                 try
                 {
                     System.Text.StringBuilder logBuilder = new System.Text.StringBuilder();
-                    logBuilder.AppendLine($"[{DateTime.Now}] è§£æå•†å“æ˜ç»†æ—¶å‡ºé”™: {ex.Message}");
-                    logBuilder.AppendLine($"[{DateTime.Now}] é”™è¯¯å †æ ˆ: {ex.StackTrace}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ½âÎöÉÌÆ·Ã÷Ï¸Ê±³ö´í: {ex.Message}");
+                    logBuilder.AppendLine($"[{DateTime.Now}] ´íÎó¶ÑÕ»: {ex.StackTrace}");
                     System.IO.File.AppendAllText("parse_error_log.txt", logBuilder.ToString(), System.Text.Encoding.UTF8);
                 }
                 catch
                 {
-                    // å¿½ç•¥ä¿å­˜é”™è¯¯æ—¥å¿—æ—¶çš„é”™è¯¯
+                    // ºöÂÔ±£´æ´íÎóÈÕÖ¾Ê±µÄ´íÎó
                 }
             }
 
             return invoice;
         }
 
-        // è·å–æ•°ç»„ç±»å‹çš„å€¼ï¼Œè¿”å›å­—ç¬¦ä¸²æ•°ç»„
+        // »ñÈ¡Êı×éÀàĞÍµÄÖµ£¬·µ»Ø×Ö·û´®Êı×é
         private string[] GetArrayValue(dynamic value)
         {
             try
@@ -409,7 +409,7 @@ namespace InvoiceVision
                 if (value == null)
                     return new string[0];
                 
-                // æ£€æŸ¥æ˜¯å¦ä¸ºæ•°ç»„
+                // ¼ì²éÊÇ·ñÎªÊı×é
                 var enumerable = value as System.Collections.IEnumerable;
                 if (enumerable != null)
                 {
@@ -418,7 +418,7 @@ namespace InvoiceVision
                     {
                         try
                         {
-                            // å¯¹äºåŠ¨æ€å¯¹è±¡ï¼Œå°è¯•ç›´æ¥è®¿é—®wordå±æ€§
+                            // ¶ÔÓÚ¶¯Ì¬¶ÔÏó£¬³¢ÊÔÖ±½Ó·ÃÎÊwordÊôĞÔ
                             if (item != null)
                             {
                                 dynamic dynamicItem = item;
@@ -428,27 +428,27 @@ namespace InvoiceVision
                                 }
                                 else
                                 {
-                                    // å°è¯•ç›´æ¥è½¬æ¢ä¸ºå­—ç¬¦ä¸²
+                                    // ³¢ÊÔÖ±½Ó×ª»»Îª×Ö·û´®
                                     result.Add(item.ToString());
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            // è®°å½•é”™è¯¯å¹¶å°è¯•å…¶ä»–æ–¹å¼
+                            // ¼ÇÂ¼´íÎó²¢³¢ÊÔÆäËû·½Ê½
                             try
                             {
                                 System.IO.File.AppendAllText(
                                     "array_value_error_log.txt", 
-                                    $"[{DateTime.Now}] æå–æ•°ç»„å€¼æ—¶å‡ºé”™: {ex.Message}\n", 
+                                    $"[{DateTime.Now}] ÌáÈ¡Êı×éÖµÊ±³ö´í: {ex.Message}\n", 
                                     System.Text.Encoding.UTF8
                                 );
                             }
                             catch
                             {
-                                // å¿½ç•¥é”™è¯¯
+                                // ºöÂÔ´íÎó
                             }
-                            // å°è¯•ç›´æ¥è½¬æ¢ä¸ºå­—ç¬¦ä¸²
+                            // ³¢ÊÔÖ±½Ó×ª»»Îª×Ö·û´®
                             if (item != null)
                             {
                                 result.Add(item.ToString());
@@ -459,24 +459,24 @@ namespace InvoiceVision
                 }
                 else
                 {
-                    // å°è¯•ç›´æ¥è½¬æ¢ä¸ºå­—ç¬¦ä¸²
+                    // ³¢ÊÔÖ±½Ó×ª»»Îª×Ö·û´®
                     return new string[] { value.ToString() };
                 }
             }
             catch (Exception ex)
             {
-                // è®°å½•é”™è¯¯
+                // ¼ÇÂ¼´íÎó
                 try
                 {
                     System.IO.File.AppendAllText(
                         "array_value_error_log.txt", 
-                        $"[{DateTime.Now}] æå–æ•°ç»„å€¼æ—¶å‡ºé”™: {ex.Message}\n", 
+                        $"[{DateTime.Now}] ÌáÈ¡Êı×éÖµÊ±³ö´í: {ex.Message}\n", 
                         System.Text.Encoding.UTF8
                     );
                 }
                 catch
                 {
-                    // å¿½ç•¥é”™è¯¯
+                    // ºöÂÔ´íÎó
                 }
                 return new string[0];
             }
@@ -492,7 +492,7 @@ namespace InvoiceVision
         {
             if (invoice.CommodityItems.Count > 0)
             {
-                // å¦‚æœæœ‰å•†å“æ˜ç»†ï¼Œä¸ºæ¯ä¸ªå•†å“æ˜ç»†åˆ›å»ºä¸€è¡Œæ•°æ®
+                // Èç¹ûÓĞÉÌÆ·Ã÷Ï¸£¬ÎªÃ¿¸öÉÌÆ·Ã÷Ï¸´´½¨Ò»ĞĞÊı¾İ
                 for (int i = 0; i < invoice.CommodityItems.Count; i++)
                 {
                     var item = invoice.CommodityItems[i];
@@ -521,7 +521,7 @@ namespace InvoiceVision
             }
             else
             {
-                // å¦‚æœæ²¡æœ‰å•†å“æ˜ç»†ï¼Œåˆ›å»ºä¸€è¡ŒåŸºæœ¬ä¿¡æ¯
+                // Èç¹ûÃ»ÓĞÉÌÆ·Ã÷Ï¸£¬´´½¨Ò»ĞĞ»ù±¾ĞÅÏ¢
                 ListViewItem item = new ListViewItem(invoice.InvoiceNum);
                 item.SubItems.Add(invoice.InvoiceCode);
                 item.SubItems.Add(invoice.InvoiceDate);
@@ -550,7 +550,7 @@ namespace InvoiceVision
         {
             if (invoiceResults.Count == 0)
             {
-                MessageBox.Show("æ²¡æœ‰å¯å¯¼å‡ºçš„æ•°æ®ï¼", "æç¤º", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("æ²¡æœ‰å¯å¯¼å‡ºçš„æ•°æ®ï¼?, "æç¤º", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -565,7 +565,7 @@ namespace InvoiceVision
                     try
                     {
                         ExportToExcel(saveFileDialog.FileName);
-                        MessageBox.Show("å¯¼å‡ºæˆåŠŸï¼", "æç¤º", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show("å¯¼å‡ºæˆåŠŸï¼?, "æç¤º", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     catch (Exception ex)
                     {
@@ -584,9 +584,9 @@ namespace InvoiceVision
                 // è®¾ç½®è¡¨å¤´
                 worksheet.Cells[1, 1].Value = "å‘ç¥¨å·ç ";
                 worksheet.Cells[1, 2].Value = "å‘ç¥¨ä»£ç ";
-                worksheet.Cells[1, 3].Value = "å¼€ç¥¨æ—¥æœŸ";
-                worksheet.Cells[1, 4].Value = "è´­ä¹°æ–¹åç§°";
-                worksheet.Cells[1, 5].Value = "è´­ä¹°æ–¹ç¨å·";
+                worksheet.Cells[1, 3].Value = "å¼€ç¥¨æ—¥æœ?;
+                worksheet.Cells[1, 4].Value = "è´­ä¹°æ–¹åç§?;
+                worksheet.Cells[1, 5].Value = "è´­ä¹°æ–¹ç¨å?;
                 worksheet.Cells[1, 6].Value = "é”€å”®æ–¹åç§°";
                 worksheet.Cells[1, 7].Value = "é”€å”®æ–¹ç¨å·";
                 worksheet.Cells[1, 8].Value = "å•†å“åç§°";
@@ -626,7 +626,7 @@ namespace InvoiceVision
                     
                     if (invoice.CommodityItems.Count > 0)
                     {
-                        // æ”¶é›†æ‰€æœ‰å•†å“æ˜ç»†ä¿¡æ¯ï¼Œç”¨åˆ†å·è¿æ¥
+                        // ÊÕ¼¯ËùÓĞÉÌÆ·Ã÷Ï¸ĞÅÏ¢£¬ÓÃ·ÖºÅÁ¬½Ó
                         var names = new List<string>();
                         var specifications = new List<string>();
                         var units = new List<string>();
@@ -648,7 +648,7 @@ namespace InvoiceVision
                             taxes.Add(item.Tax);
                         }
                         
-                        // å°†æ”¶é›†çš„ä¿¡æ¯ç”¨åˆ†å·è¿æ¥å¹¶å¡«å……åˆ°å•å…ƒæ ¼
+                        // ½«ÊÕ¼¯µÄĞÅÏ¢ÓÃ·ÖºÅÁ¬½Ó²¢Ìî³äµ½µ¥Ôª¸ñ
                         worksheet.Cells[row, 8].Value = string.Join("; ", names);
                         worksheet.Cells[row, 9].Value = string.Join("; ", specifications);
                         worksheet.Cells[row, 10].Value = string.Join("; ", units);
@@ -660,7 +660,7 @@ namespace InvoiceVision
                     }
                     else
                     {
-                        // å¦‚æœæ²¡æœ‰å•†å“æ˜ç»†ï¼Œç•™ç©º
+                        // Èç¹ûÃ»ÓĞÉÌÆ·Ã÷Ï¸£¬Áô¿Õ
                         worksheet.Cells[row, 8].Value = "";
                         worksheet.Cells[row, 9].Value = "";
                         worksheet.Cells[row, 10].Value = "";
@@ -671,7 +671,7 @@ namespace InvoiceVision
                         worksheet.Cells[row, 15].Value = "";
                     }
                     
-                    // å¡«å……å‘ç¥¨çš„å…¶ä»–ä¿¡æ¯
+                    // Ìî³ä·¢Æ±µÄÆäËûĞÅÏ¢
                     worksheet.Cells[row, 16].Value = invoice.TotalAmount;
                     worksheet.Cells[row, 17].Value = invoice.TotalTax;
                     worksheet.Cells[row, 18].Value = invoice.AmountInFiguers;
