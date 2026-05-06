@@ -63,3 +63,9 @@ appsettings.json
 # Keep example file
 !appsettings.example.json
 
+<<<<<<< HEAD
+=======
+# Local invoice samples
+发票提取/
+*.zip
+>>>>>>> main

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 namespace InvoiceVision
+=======
+﻿namespace InvoiceVision
+>>>>>>> main
 {
     partial class Form1
     {
@@ -41,6 +45,7 @@ namespace InvoiceVision
             columnHeader7 = new ColumnHeader();
             columnHeader8 = new ColumnHeader();
             columnHeader9 = new ColumnHeader();
+<<<<<<< HEAD
             columnHeader10 = new ColumnHeader();
             columnHeader11 = new ColumnHeader();
             columnHeader12 = new ColumnHeader();
@@ -52,6 +57,8 @@ namespace InvoiceVision
             columnHeader18 = new ColumnHeader();
             columnHeader19 = new ColumnHeader();
             columnHeader20 = new ColumnHeader();
+=======
+>>>>>>> main
             superListView = new SuperListView();
             progressBar = new ProgressBar();
             labelStatus = new Label();
@@ -98,6 +105,10 @@ namespace InvoiceVision
             listBoxImages.Name = "listBoxImages";
             listBoxImages.Size = new Size(372, 361);
             listBoxImages.TabIndex = 3;
+<<<<<<< HEAD
+=======
+            listBoxImages.DoubleClick += ListBoxImages_DoubleClick;
+>>>>>>> main
             // 
             // columnHeader1
             // 
@@ -144,6 +155,7 @@ namespace InvoiceVision
             columnHeader9.Text = "文件路径";
             columnHeader9.Width = 350;
             // 
+<<<<<<< HEAD
             // columnHeader10
             // 
             columnHeader10.Text = "购买方税号";
@@ -203,6 +215,12 @@ namespace InvoiceVision
             // 
             superListView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             superListView.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5, columnHeader10, columnHeader11, columnHeader6, columnHeader7, columnHeader8, columnHeader12, columnHeader13, columnHeader14, columnHeader15, columnHeader16, columnHeader17, columnHeader18, columnHeader19, columnHeader20 });
+=======
+            // superListView
+            // 
+            superListView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            superListView.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5, columnHeader6, columnHeader7, columnHeader8, columnHeader9 });
+>>>>>>> main
             superListView.FullRowSelect = true;
             superListView.GridLines = true;
             superListView.Location = new Point(390, 53);
@@ -270,6 +288,7 @@ namespace InvoiceVision
         private System.Windows.Forms.ColumnHeader columnHeader7;
         private System.Windows.Forms.ColumnHeader columnHeader8;
         private System.Windows.Forms.ColumnHeader columnHeader9;
+<<<<<<< HEAD
         private System.Windows.Forms.ColumnHeader columnHeader10;
         private System.Windows.Forms.ColumnHeader columnHeader11;
         private System.Windows.Forms.ColumnHeader columnHeader12;
@@ -281,5 +300,7 @@ namespace InvoiceVision
         private System.Windows.Forms.ColumnHeader columnHeader18;
         private System.Windows.Forms.ColumnHeader columnHeader19;
         private System.Windows.Forms.ColumnHeader columnHeader20;
+=======
+>>>>>>> main
     }
 }
